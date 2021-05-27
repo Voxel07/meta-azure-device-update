@@ -11,8 +11,12 @@
 
 LICENSE = "CLOSED"
 
-ADUC_GIT_BRANCH ?= "master"
-ADUC_SRC_URI ?= "git://github.com/Azure/adu-private-preview;branch=${ADUC_GIT_BRANCH}"
+ADUC_GIT_BRANCH ?= "main"
+# ADUC_SRC_URI ?= "git://github.com/Azure/adu-private-preview;branch=${ADUC_GIT_BRANCH}"
+##Takes the Azure Agent
+#ADUC_SRC_URI ?= "git://github.com/Azure/iot-hub-device-update;branch=${ADUC_GIT_BRANCH}"
+##Takes the modified locale Agent
+ADUC_SRC_URI ?= "git://github.com/Voxel07/iot-hub-device-update-git;branch=master"
 SRC_URI = "${ADUC_SRC_URI}"
 
 # This code handles setting variables for either git or for a local file.
@@ -69,7 +73,9 @@ EXTRA_OECMAKE += "-DDOSDK_INCLUDE_DIR=${WORKDIR}/recipe-sysroot/usr/include"
 # adu-hw-compat - to install the hardware compatibility file used by swupdate.
 # adu-log-dir - to create the temporary log directory in the image.
 # deliveryoptimization-agent-service - to install the delivery optimization agent for downloads.
-RDEPENDS_${PN} += "bash swupdate adu-pub-key adu-device-info-files adu-hw-compat adu-log-dir deliveryoptimization-agent-service"
+
+#### RDEPENDS_${PN} += "bash swupdate adu-pub-key adu-device-info-files adu-hw-compat adu-log-dir deliveryoptimization-agent-service"
+RDEPENDS_${PN} += "bash adu-pub-key adu-device-info-files adu-log-dir deliveryoptimization-agent-service"
 
 INSANE_SKIP_${PN} += "installed-vs-shipped"
 
@@ -101,6 +107,7 @@ USERADD_PARAM_${PN}-adu = "\
 
 do_install_append() {
     #create ADUC_DATA_DIR
+    bbwarn "test"
     install -d ${D}${ADUC_DATA_DIR}
     chgrp ${ADUGROUP} ${D}${ADUC_DATA_DIR}
     chmod 0770 ${D}${ADUC_DATA_DIR}

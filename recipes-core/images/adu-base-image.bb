@@ -5,12 +5,6 @@ DESCRIPTION = "ADU base image"
 SECTION = ""
 LICENSE="CLOSED"
 
-# .wks file is used to create partitions in image.
-WKS_FILE_raspberrypi3 = "adu-raspberrypi.wks"
-# wic* images our used to flash SD cards
-# ext4.gz image is used to construct swupdate image.
-IMAGE_FSTYPES += "wic wic.gz ext4.gz"
-
 IMAGE_FEATURES += "splash debug-tweaks ssh-server-openssh tools-debug tools-profile"
 
 # connman - provides network connectivity.

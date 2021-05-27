@@ -27,6 +27,7 @@ sysroot_stage_all_append () {
     sysroot_stage_dir ${D}${exec_prefix}/cmake ${SYSROOT_DESTDIR}${exec_prefix}/cmake
 }
 
+#PACKAGES =+ " ${PN}-dev"
 
 FILES_${PN}-dev += "${exec_prefix}/cmake"
 
