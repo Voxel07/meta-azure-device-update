@@ -26,7 +26,6 @@ do_compile() {
 
 # Install the files on the image in /etc
 do_install() {
-    bbwarn "test2"
     install -d ${D}${sysconfdir}
     install -d ${D}"/adu"
     install -m ugo=r adu-manufacturer ${D}${sysconfdir}/adu-manufacturer

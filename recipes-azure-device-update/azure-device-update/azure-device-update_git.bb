@@ -107,7 +107,6 @@ USERADD_PARAM_${PN}-adu = "\
 
 do_install_append() {
     #create ADUC_DATA_DIR
-    bbwarn "test"
     install -d ${D}${ADUC_DATA_DIR}
     chgrp ${ADUGROUP} ${D}${ADUC_DATA_DIR}
     chmod 0770 ${D}${ADUC_DATA_DIR}
