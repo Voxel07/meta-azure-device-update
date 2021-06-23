@@ -11,12 +11,14 @@
 
 LICENSE = "CLOSED"
 
-ADUC_GIT_BRANCH ?= "main"
+# ADUC_GIT_BRANCH ?= "main"
+ADUC_GIT_BRANCH ?= "master"
+# ADUC_GIT_BRANCH ?= "fsupdate_handler"
 # ADUC_SRC_URI ?= "git://github.com/Azure/adu-private-preview;branch=${ADUC_GIT_BRANCH}"
 ##Takes the Azure Agent
 #ADUC_SRC_URI ?= "git://github.com/Azure/iot-hub-device-update;branch=${ADUC_GIT_BRANCH}"
 ##Takes the modified locale Agent
-ADUC_SRC_URI ?= "git://github.com/Voxel07/iot-hub-device-update-git;branch=master"
+ADUC_SRC_URI ?= "git://github.com/Voxel07/iot-hub-device-update-git;branch=${ADUC_GIT_BRANCH}"
 SRC_URI = "${ADUC_SRC_URI}"
 
 # This code handles setting variables for either git or for a local file.
@@ -44,7 +46,7 @@ EXTRA_OECMAKE += "-DADUC_WARNINGS_AS_ERRORS=OFF"
 # Build the non-simulator (real) version of the client.
 EXTRA_OECMAKE += "-DADUC_PLATFORM_LAYER=linux"
 # Integrate with SWUpdate as the installer
-EXTRA_OECMAKE += "-DADUC_CONTENT_HANDLERS=microsoft/swupdate"
+EXTRA_OECMAKE += "-DADUC_CONTENT_HANDLERS=fus/fsupdate"
 # Set the path to the manufacturer file
 EXTRA_OECMAKE += "-DADUC_MANUFACTURER_FILE=${sysconfdir}/adu-manufacturer"
 # Set the path to the model file
@@ -104,7 +106,10 @@ USERADD_PARAM_${PN}-adu = "\
     --uid 800 --system -g ${ADUGROUP} --home-dir /home/${ADUUSER} --no-create-home --shell /bin/false ${ADUUSER} ; \
     --uid 801 --system -g ${DOGROUP} -G ${ADUGROUP} --home-dir /home/${DOUSER} --no-create-home --shell /bin/false ${DOUSER} ; \
     "
+do_compile_append(){
 
+    echo "${ADU_SOFTWARE_VERSION}" > adu-version 
+}
 do_install_append() {
     #create ADUC_DATA_DIR
     install -d ${D}${ADUC_DATA_DIR}
@@ -129,8 +134,18 @@ do_install_append() {
     #set owner for adu-shell
     chown root:${ADUGROUP} ${D}${libdir}/adu/adu-shell
 
+    #set owner for adu-version
+    install -d ${D}${sysconfdir}
+    install -m ugo=rw adu-version ${D}${sysconfdir}/adu-version
+    chown root:${ADUGROUP} ${D}${sysconfdir}/adu-version
+
     #set S UID for adu-shell
     chmod u+s ${D}${libdir}/adu/adu-shell
+
+    ##Use only until FS-Updates implements the run as root function
+    ##Then the workflow is seperatet like intended by MS
+    #set SUID for AducIotAgent
+    chmod u+s ${D}${bindir}/AducIotAgent
 }
 
 FILES_${PN} += "${bindir}/AducIotAgent"
