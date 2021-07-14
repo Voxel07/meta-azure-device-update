@@ -11,6 +11,7 @@
 LICENSE = "CLOSED"
 
 DO_SRC_URI ?= "gitsm://github.com/microsoft/do-client;branch=main"
+# SRCREV ?= "8966861204e09961f0db33728e500cd7346cd5dd"
 SRC_URI = "${DO_SRC_URI}"
 
 # This code handles setting variables for either git or for a local file.

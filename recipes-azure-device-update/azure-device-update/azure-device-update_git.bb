@@ -11,14 +11,10 @@
 
 LICENSE = "CLOSED"
 
-# ADUC_GIT_BRANCH ?= "main"
 ADUC_GIT_BRANCH ?= "master"
-# ADUC_GIT_BRANCH ?= "fsupdate_handler"
-# ADUC_SRC_URI ?= "git://github.com/Azure/adu-private-preview;branch=${ADUC_GIT_BRANCH}"
-##Takes the Azure Agent
-#ADUC_SRC_URI ?= "git://github.com/Azure/iot-hub-device-update;branch=${ADUC_GIT_BRANCH}"
-##Takes the modified locale Agent
 ADUC_SRC_URI ?= "git://github.com/Voxel07/iot-hub-device-update-git;branch=${ADUC_GIT_BRANCH}"
+# SRC_URI = "file://fus-device-update-Y2021.07.tar.bz2"
+# S = "${WORKDIR}/fus-device-update"
 SRC_URI = "${ADUC_SRC_URI}"
 
 # This code handles setting variables for either git or for a local file.
@@ -46,13 +42,12 @@ EXTRA_OECMAKE += "-DADUC_WARNINGS_AS_ERRORS=OFF"
 # Build the non-simulator (real) version of the client.
 EXTRA_OECMAKE += "-DADUC_PLATFORM_LAYER=linux"
 # Integrate with SWUpdate as the installer
+# EXTRA_OECMAKE += "-DADUC_CONTENT_HANDLERS=fus/fsupdate"
 EXTRA_OECMAKE += "-DADUC_CONTENT_HANDLERS=fus/fsupdate"
-# Set the path to the manufacturer file
-EXTRA_OECMAKE += "-DADUC_MANUFACTURER_FILE=${sysconfdir}/adu-manufacturer"
-# Set the path to the model file
-EXTRA_OECMAKE += "-DADUC_MODEL_FILE=${sysconfdir}/adu-model"
-# Set the path to the version file
-EXTRA_OECMAKE += "-DADUC_VERSION_FILE=${sysconfdir}/adu-version"
+# Set the path to the adu version file
+EXTRA_OECMAKE += "-DFIRMWARE_VERSION_FILE=${sysconfdir}/fw_version"
+# Set the path to the app version file
+EXTRA_OECMAKE += "-DAPP_VERSION_FILE=${sysconfdir}/app_version"
 # Use zlog as the logging library.
 EXTRA_OECMAKE += "-DADUC_LOGGING_LIBRARY=zlog"
 # Change the log directory.
@@ -107,8 +102,8 @@ USERADD_PARAM_${PN}-adu = "\
     --uid 801 --system -g ${DOGROUP} -G ${ADUGROUP} --home-dir /home/${DOUSER} --no-create-home --shell /bin/false ${DOUSER} ; \
     "
 do_compile_append(){
-
-    echo "${ADU_SOFTWARE_VERSION}" > adu-version 
+    echo "${ADU_SOFTWARE_VERSION}" > fw_version
+    echo "${ADU_SOFTWARE_VERSION}" > app_version
 }
 do_install_append() {
     #create ADUC_DATA_DIR
@@ -126,21 +121,10 @@ do_install_append() {
     chgrp ${ADUGROUP} ${D}${ADUC_LOG_DIR}
     chmod 0774 ${D}${ADUC_LOG_DIR}
 
-    #install adu-shell to /usr/lib/adu directory.
-    install -d ${D}${libdir}/adu
-
-    install -m 0550 ${S}/src/adu-shell/scripts/adu-swupdate.sh ${D}${libdir}/adu
-
-    #set owner for adu-shell
-    chown root:${ADUGROUP} ${D}${libdir}/adu/adu-shell
-
-    #set owner for adu-version
+    #set owner for app_version
     install -d ${D}${sysconfdir}
-    install -m ugo=rw adu-version ${D}${sysconfdir}/adu-version
-    chown root:${ADUGROUP} ${D}${sysconfdir}/adu-version
-
-    #set S UID for adu-shell
-    chmod u+s ${D}${libdir}/adu/adu-shell
+    install -m ugo=rw app_version ${D}${sysconfdir}/app_version
+    chgrp ${ADUGROUP} ${D}${sysconfdir}/app_version
 
     ##Use only until FS-Updates implements the run as root function
     ##Then the workflow is seperatet like intended by MS
