@@ -9,8 +9,10 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=4283671594edec4c13aeb073c219237a"
 # We pull from master branch in order to get PnP APIs
 SRC_URI = "gitsm://github.com/Azure/azure-iot-sdk-c.git;branch=master"
 
-# SRCREV = "13d38af214ee4fe726f3ce126aafe371d5f5c3d0"
-SRCREV = "${AUTOREV}"
+# This commit ID is nothing special, it was chosen because it was the latest working one during testing
+# and there are important changes between it and the latest tag.
+# Update the ID when a new tag is released.
+SRCREV = "13d38af214ee4fe726f3ce126aafe371d5f5c3d0"
 PV = "1.0+git${SRCPV}"
 
 S = "${WORKDIR}/git"
@@ -27,8 +29,6 @@ EXTRA_OECMAKE += "-Duse_amqp:BOOL=OFF -Duse_http:BOOL=ON -Duse_mqtt:BOOL=ON -Dsk
 sysroot_stage_all_append () {
     sysroot_stage_dir ${D}${exec_prefix}/cmake ${SYSROOT_DESTDIR}${exec_prefix}/cmake
 }
-
-#PACKAGES =+ " ${PN}-dev"
 
 FILES_${PN}-dev += "${exec_prefix}/cmake"
 

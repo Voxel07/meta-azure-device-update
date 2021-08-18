@@ -11,7 +11,11 @@
 LICENSE = "CLOSED"
 
 DO_SRC_URI ?= "gitsm://github.com/microsoft/do-client;branch=main"
-# SRCREV ?= "8966861204e09961f0db33728e500cd7346cd5dd"
+
+# This commit ID is nothing special, it was chosen because it was the latest working one during testing
+# and there are important changes between it and the latest tag.
+# Update the ID when a new tag is released.
+SRCREV = "8966861204e09961f0db33728e500cd7346cd5dd"
 SRC_URI = "${DO_SRC_URI}"
 
 # This code handles setting variables for either git or for a local file.

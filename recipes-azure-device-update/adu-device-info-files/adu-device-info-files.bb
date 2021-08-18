@@ -15,8 +15,8 @@ LICENSE="CLOSED"
 do_compile() {
 
     echo "connection_string = ${CONNECTIONSTRING}" > adu-conf.txt
-    echo "aduc_manufacturer = aduc${MANUFACTURER}" >> adu-conf.txt
-    echo "aduc_model = adu_${MODEL}" >> adu-conf.txt
+    echo "aduc_manufacturer = aduc_${MANUFACTURER}" > adu-conf.txt
+    echo "aduc_model = aduc_${MODEL}" >> adu-conf.txt
     echo "manufacturer = ${MANUFACTURER}" >> adu-conf.txt
     echo "model = ${MODEL}" >> adu-conf.txt
 }
@@ -24,10 +24,9 @@ do_compile() {
 # Install the files on the image in /etc
 do_install() {
     install -d ${D}"/adu"
-    install -m ugo=rw adu-conf ${D}/adu/adu-conf.txt
+    install -m ugo=rw adu-conf.txt ${D}/adu/adu-conf.txt
 }
 
 FILES_${PN} += "/adu/adu-conf.txt"
-
 
 inherit allarch

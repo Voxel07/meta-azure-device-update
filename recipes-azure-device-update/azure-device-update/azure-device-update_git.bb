@@ -11,24 +11,8 @@
 
 LICENSE = "CLOSED"
 
-ADUC_GIT_BRANCH ?= "master"
-ADUC_SRC_URI ?= "git://github.com/Voxel07/iot-hub-device-update-git;branch=${ADUC_GIT_BRANCH}"
-# SRC_URI = "file://fus-device-update-Y2021.07.tar.bz2"
-# S = "${WORKDIR}/fus-device-update"
-SRC_URI = "${ADUC_SRC_URI}"
-
-# This code handles setting variables for either git or for a local file.
-# This is only while we are using private repos, once our repos are public,
-# we will just use git.
-python () {
-    src_uri = d.getVar('ADUC_SRC_URI')
-    if src_uri.startswith('git'):
-        d.setVar('SRCREV', d.getVar('AUTOREV'))
-        d.setVar('PV', '1.0+git' + d.getVar('SRCPV'))
-        d.setVar('S', d.getVar('WORKDIR') + "/git")
-    elif src_uri.startswith('file'):
-        d.setVar('S',  d.getVar('WORKDIR') + "/adu-linux-client")
-}
+SRC_URI = "file://fus-device-update-Y2021.07.tar.bz2"
+S = "${WORKDIR}/fus-device-update"
 
 # ADUC depends on azure-iot-sdk-c and DO Agent SDK
 DEPENDS = "azure-iot-sdk-c deliveryoptimization-agent curl deliveryoptimization-sdk"
@@ -41,13 +25,12 @@ EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
 EXTRA_OECMAKE += "-DADUC_WARNINGS_AS_ERRORS=OFF"
 # Build the non-simulator (real) version of the client.
 EXTRA_OECMAKE += "-DADUC_PLATFORM_LAYER=linux"
-# Integrate with SWUpdate as the installer
-# EXTRA_OECMAKE += "-DADUC_CONTENT_HANDLERS=fus/fsupdate"
+# Integrate with FS-Update as the installer
 EXTRA_OECMAKE += "-DADUC_CONTENT_HANDLERS=fus/fsupdate"
 # Set the path to the adu version file
 EXTRA_OECMAKE += "-DFIRMWARE_VERSION_FILE=${sysconfdir}/fw_version"
 # Set the path to the app version file
-EXTRA_OECMAKE += "-DAPP_VERSION_FILE=${sysconfdir}/app_version"
+EXTRA_OECMAKE += "-DAPP_VERSION_FILE=/rw_fs/root/application/current/etc/app_version"
 # Use zlog as the logging library.
 EXTRA_OECMAKE += "-DADUC_LOGGING_LIBRARY=zlog"
 # Change the log directory.
@@ -64,14 +47,12 @@ EXTRA_OECMAKE += "-Dcpprestsdk_DIR=${WORKDIR}/recipe-sysroot/usr/lib/cmake"
 EXTRA_OECMAKE += "-DDOSDK_INCLUDE_DIR=${WORKDIR}/recipe-sysroot/usr/include"
 
 # bash - for running shell scripts for install.
-# swupdate - to install update package.
 # adu-pub-key - to install public key for update package verification.
 # adu-device-info-files - to install the device info related files onto the image.
 # adu-hw-compat - to install the hardware compatibility file used by swupdate.
 # adu-log-dir - to create the temporary log directory in the image.
 # deliveryoptimization-agent-service - to install the delivery optimization agent for downloads.
 
-#### RDEPENDS_${PN} += "bash swupdate adu-pub-key adu-device-info-files adu-hw-compat adu-log-dir deliveryoptimization-agent-service"
 RDEPENDS_${PN} += "bash adu-pub-key adu-device-info-files adu-log-dir deliveryoptimization-agent-service"
 
 INSANE_SKIP_${PN} += "installed-vs-shipped"
@@ -101,34 +82,26 @@ USERADD_PARAM_${PN}-adu = "\
     --uid 800 --system -g ${ADUGROUP} --home-dir /home/${ADUUSER} --no-create-home --shell /bin/false ${ADUUSER} ; \
     --uid 801 --system -g ${DOGROUP} -G ${ADUGROUP} --home-dir /home/${DOUSER} --no-create-home --shell /bin/false ${DOUSER} ; \
     "
-do_compile_append(){
-    echo "${ADU_SOFTWARE_VERSION}" > fw_version
-    echo "${ADU_SOFTWARE_VERSION}" > app_version
-}
+
 do_install_append() {
-    #create ADUC_DATA_DIR
+    # create ADUC_DATA_DIR
     install -d ${D}${ADUC_DATA_DIR}
     chgrp ${ADUGROUP} ${D}${ADUC_DATA_DIR}
     chmod 0770 ${D}${ADUC_DATA_DIR}
 
-    #create ADUC_CONF_DIR
+    # create ADUC_CONF_DIR
     install -d ${D}${ADUC_CONF_DIR}
     chgrp ${ADUGROUP} ${D}${ADUC_CONF_DIR}
     chmod 0774 ${D}${ADUC_CONF_DIR}
 
-    #create ADUC_LOG_DIR
+    # create ADUC_LOG_DIR
     install -d ${D}${ADUC_LOG_DIR}
     chgrp ${ADUGROUP} ${D}${ADUC_LOG_DIR}
     chmod 0774 ${D}${ADUC_LOG_DIR}
 
-    #set owner for app_version
-    install -d ${D}${sysconfdir}
-    install -m ugo=rw app_version ${D}${sysconfdir}/app_version
-    chgrp ${ADUGROUP} ${D}${sysconfdir}/app_version
-
-    ##Use only until FS-Updates implements the run as root function
-    ##Then the workflow is seperatet like intended by MS
-    #set SUID for AducIotAgent
+    # Use only until FS-Update implements the run as root function
+    # Then the workflow is seperatet like it was intended by MS
+    # set SUID for AducIotAgent
     chmod u+s ${D}${bindir}/AducIotAgent
 }
 
